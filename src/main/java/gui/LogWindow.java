@@ -11,19 +11,29 @@ import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
+/**
+ * Визуализирует окно с логами.
+ */
 public class LogWindow extends JInternalFrame implements LogChangeListener
 {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
-    public LogWindow(LogWindowSource logSource) 
-    {
-        super("Протокол работы", true, true, true, true);
+    /**
+     * Конструктор лог-окна
+     * @param logSource источник логов
+     */
+    public LogWindow(LogWindowSource logSource) {
+        super("Протокол работы", // title - Название игрового поля
+                true,               // resizable - Можно изменять размер окна
+                true,               // closable - Можно закрыть
+                true,               //  maximizable - Можно сделать на весь экран
+                true);              // iconifiable - Может быть иконформировано
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
         m_logContent.setSize(200, 500);
-        
+
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
@@ -31,6 +41,9 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         updateLogContent();
     }
 
+    /**
+     * Обновление логов.
+     */
     private void updateLogContent()
     {
         StringBuilder content = new StringBuilder();
@@ -41,7 +54,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         m_logContent.setText(content.toString());
         m_logContent.invalidate();
     }
-    
+
     @Override
     public void onLogChanged()
     {

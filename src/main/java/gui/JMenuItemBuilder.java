@@ -6,7 +6,7 @@ import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Билдер класса JMenuItem
+ * Строитель класса JMenuItem
  */
 public class JMenuItemBuilder {
     private String title;

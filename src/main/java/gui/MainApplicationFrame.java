@@ -3,8 +3,13 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Optional;
 import javax.swing.*;
 
 import log.Logger;
@@ -33,16 +38,45 @@ public class MainApplicationFrame extends JFrame
 
         setContentPane(desktopPane);
         
-        
+        // Создание окна логов
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
+        // Создание окна игры
         GameWindow gameWindow = new GameWindow();
         gameWindow.setSize(400,  400);
+        // Игровое окно внутри основного окна
         addWindow(gameWindow);
 
+        // Создает меню, описанное в методах ниже
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // Поведение приложения при закрытии окна EXIT_ON_CLOSE
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        // Обработка выхода из приложения.
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                closeProgramConfirm();
+            }
+        });
+    }
+
+    /**
+     * Создает окно подтверждения при попытке выхода из программы.
+     */
+    protected void closeProgramConfirm() {
+        UIManager.put("OptionPane.yesButtonText", "Да");
+        UIManager.put("OptionPane.noButtonText", "Нет");
+        int confirm = JOptionPane.showConfirmDialog(
+                MainApplicationFrame.this,
+                "Вы точно хотите выйти?",
+                "Подтверждение выхода",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }
 
     /**
@@ -62,7 +96,7 @@ public class MainApplicationFrame extends JFrame
 
     /**
      * Добавляет окно в приложение.
-     * @param frame TODO хз
+     * @param frame Информация о содержимом окна.
      */
     protected void addWindow(JInternalFrame frame)
     {
@@ -70,38 +104,37 @@ public class MainApplicationFrame extends JFrame
         frame.setVisible(true);
     }
 
-//    /**
-//     * Создает кнопку "Document" в меню.
-//     * @return Кнопка с разделами.
-//     */
-//    protected JMenuBar createMenuBar() {
-//        JMenuBar menuBar = new JMenuBar();
-//
-//        //Set up the lone menu.
-//        JMenu menu = new JMenu("Document");
-//        menu.setMnemonic(KeyEvent.VK_D);
-//        menuBar.add(menu);
-//
-//        //Set up the first menu item.
-//        JMenuItem menuItem = new JMenuItem("New");
-//        menuItem.setMnemonic(KeyEvent.VK_N);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_N, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("new");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-//
-//        //Set up the second menu item.
-//        menuItem = new JMenuItem("Quit");
-//        menuItem.setMnemonic(KeyEvent.VK_Q);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_Q, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("quit");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-//
-//        return menuBar;
-//    }
+    /**
+     * Создает кнопку "Document" в меню.
+     * @return Кнопка с разделами.
+     */
+    protected JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        //Set up the lone menu.
+        JMenu menu = new JMenu("Document");
+        menu.setMnemonic(KeyEvent.VK_D);
+        menuBar.add(menu);
+
+        menu.add(new JMenuItemBuilder()
+                .title("New")
+                .mnemonic(KeyEvent.VK_N)
+                .accelKey(KeyEvent.VK_N)
+                .accelMask(ActionEvent.ALT_MASK)
+                .command("new")
+                .listener((event) -> {})
+                .build());
+
+        menu.add(new JMenuItemBuilder()
+                .title("Выход")
+                .mnemonic(KeyEvent.VK_Q)
+                .accelKey(KeyEvent.VK_Q)
+                .accelMask(ActionEvent.ALT_MASK)
+                .command("quit")
+                .listener((event) -> {closeProgramConfirm();})
+                .build());
+        return menuBar;
+    }
 
     /**
      * Генерирует меню (строка сверху).
@@ -117,24 +150,21 @@ public class MainApplicationFrame extends JFrame
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
 
-        // Кнопки в разделе "Режим отображения"
-        {
-            JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
-            systemLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(systemLookAndFeel);
-        }
+        lookAndFeelMenu.add(new JMenuItemBuilder()
+                .title("Системная схема")
+                .mnemonic(KeyEvent.VK_S)
+                .listener((event) -> {
+                    setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    this.invalidate();})
+                .build());
 
-        {
-            JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
-            crossplatformLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(crossplatformLookAndFeel);
-        }
+        lookAndFeelMenu.add(new JMenuItemBuilder()
+                .title("Универсальная схема")
+                .mnemonic(KeyEvent.VK_S)
+                .listener((event) -> {
+                    setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+                    this.invalidate();})
+                .build());
 
         // Кнопка "Тесты" в меню
         JMenu testMenu = new JMenu("Тесты");
@@ -143,17 +173,17 @@ public class MainApplicationFrame extends JFrame
                 "Тестовые команды");
 
         // Кнопка в разделе "Тесты"
-        {
-            JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
-            addLogMessageItem.addActionListener((event) -> {
-                Logger.debug("Новая строка");
-            });
-            testMenu.add(addLogMessageItem);
-        }
+        testMenu.add(new JMenuItemBuilder()
+                .title("Сообщение в лог")
+                .mnemonic(KeyEvent.VK_S)
+                .listener((event) -> {
+                    Logger.debug("Новая строка");})
+                .build());
+
 
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
-        //menuBar.add(createMenuBar());
+        menuBar.add(createMenuBar());
         return menuBar;
     }
     

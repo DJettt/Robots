@@ -1,5 +1,7 @@
 package gui;
 
+import gui.windows.GameWindow;
+import gui.windows.LogWindow;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -12,10 +14,7 @@ import javax.swing.*;
 import log.Logger;
 
 /**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается. 
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- *
+ * Создает содержимое окна приложения, а именно окно игры и окно логов.
  */
 public class MainApplicationFrame extends JFrame
 {
@@ -58,9 +57,9 @@ public class MainApplicationFrame extends JFrame
      */
     private JMenuBar generateMenuBar() {
         JMenuBar menuBar = new JMenuBar();
+        menuBar.add(createMenuBar());
         menuBar.add(createBackgroundMenu());
         menuBar.add(createTestMenu());
-        menuBar.add(createMenuBar());
         return menuBar;
     }
 
@@ -111,21 +110,12 @@ public class MainApplicationFrame extends JFrame
     }
 
     /**
-     * Создает кнопку "Document" в меню.
+     * Создает кнопку "Меню" в меню.
      * @return Кнопка с разделами.
      */
     protected JMenu createMenuBar() {
-        JMenu menu = new JMenu("Document");
+        JMenu menu = new JMenu("Меню");
         menu.setMnemonic(KeyEvent.VK_D);
-
-        menu.add(new JMenuItemBuilder()
-                .title("New")
-                .mnemonic(KeyEvent.VK_N)
-                .accelKey(KeyEvent.VK_N)
-                .accelMask(ActionEvent.ALT_MASK)
-                .command("new")
-                .listener((event) -> {})
-                .build());
 
         menu.add(new JMenuItemBuilder()
                 .title("Выход")

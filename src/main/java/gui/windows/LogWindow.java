@@ -1,4 +1,4 @@
-package gui;
+package gui.windows;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -14,8 +14,9 @@ import log.LogWindowSource;
 /**
  * Визуализирует окно с логами.
  */
-public class LogWindow extends JInternalFrame implements LogChangeListener
+public class LogWindow extends JInternalFrame implements LogChangeListener, SavableWindows
 {
+    private final static String prefix = "log";
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
@@ -59,5 +60,10 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);
+    }
+
+    @Override
+    public String getPrefix() {
+        return prefix;
     }
 }

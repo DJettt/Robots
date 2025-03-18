@@ -2,6 +2,7 @@ package gui;
 
 import gui.windows.GameWindow;
 import gui.windows.LogWindow;
+import gui.windows.SavableWindows;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -34,12 +35,9 @@ public class MainApplicationFrame extends JFrame
 
         setContentPane(desktopPane);
         
-        LogWindow logWindow = createLogWindow();
-        addWindow(logWindow);
-
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
-        addWindow(gameWindow);
+        //addWindow(createLogWindow());
+        addWindow(new LogWindow());
+        addWindow(new GameWindow());
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -142,6 +140,16 @@ public class MainApplicationFrame extends JFrame
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
+            for (JInternalFrame frame : desktopPane.getAllFrames()) {
+                if (frame instanceof SavableWindows) {
+                    ((SavableWindows) frame).saveParameters();
+                }
+            }
+            Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
+                    new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+
+            desktopPane.setVisible(false);
+            dispose();
             System.exit(0);
         }
     }
@@ -150,15 +158,25 @@ public class MainApplicationFrame extends JFrame
      * Создает окно с логами.
      * @return окно с логами
      */
-    protected LogWindow createLogWindow()
-    {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(10,10);
-        logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        Logger.debug("Протокол работает");
-        return logWindow;
+//    protected LogWindow createLogWindow()
+//    {
+//        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
+//        logWindow.setLocation(10,10);
+//        logWindow.setSize(300, 800);
+//        setMinimumSize(logWindow.getSize());
+//        logWindow.pack();
+//        Logger.debug("Протокол работает");
+//        return logWindow;
+//    }
+
+    protected GameWindow createGameWindow() {
+        GameWindow gameWindow = new GameWindow();
+        //gameWindow.setLocation(10,10);
+        //gameWindow.setSize(400, 400);
+        //gameWindow.setIcon();
+        setMinimumSize(gameWindow.getSize());
+        gameWindow.pack();
+        return gameWindow;
     }
 
     /**

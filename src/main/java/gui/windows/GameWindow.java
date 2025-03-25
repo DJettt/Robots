@@ -3,15 +3,11 @@ package gui.windows;
 import gui.GameVisualizer;
 import java.awt.BorderLayout;
 
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Objects;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 
 /**
  * Визуализирует внутреннее поле с игрой.
@@ -22,7 +18,9 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     private static final String LOCATE_X = "locate.x";
     private static final String LOCATE_Y = "locate.y";
     private static final String IS_ICON = "isIcon";
+
     private final static String prefix = "game";
+
     private final GameVisualizer m_visualizer;
     private final WindowCache cache = new WindowCache(prefix);
 
@@ -35,50 +33,51 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
                 true,               // closable - Можно закрыть
                 true,               //  maximizable - Можно сделать на весь экран
                 true);              // iconifiable - Может быть свернуто
-        m_visualizer = new GameVisualizer();
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(m_visualizer, BorderLayout.CENTER);
-        getContentPane().add(panel);
+
+        m_visualizer = new GameVisualizer();            //визуализатор игры
+
         setVisible(false);
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                cache.put(WIDTH, String.valueOf(getWidth()));
-                cache.put(HEIGHT, String.valueOf(getHeight()));
-                super.componentResized(e);
-            }
-            @Override
-            public void componentMoved(ComponentEvent e) {
-                cache.put(LOCATE_X, String.valueOf(getLocation().x));
-                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
-                super.componentMoved(e);
-            }
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                cache.saveParameters();
-                super.componentMoved(e);
-            }
-        });
-        addInternalFrameListener(new InternalFrameAdapter() {
-            @Override
-            public void internalFrameIconified(InternalFrameEvent e) {
-                cache.put(IS_ICON, String.valueOf(isIcon() ? 1 : 0));
-                super.internalFrameIconified(e);
-            }
-            @Override
-            public void internalFrameDeiconified(InternalFrameEvent e) {
-                cache.put(IS_ICON, String.valueOf(isIcon() ? 1 : 0));
-                super.internalFrameIconified(e);
-            }
-        });
+        JPanel panel = new JPanel(new BorderLayout());      // Тип окна
+        panel.add(m_visualizer, BorderLayout.CENTER);   // Добавление данных в панель
+        getContentPane().add(panel);                        // Добавление данных в окно
+
+//         Добавление слушателей
+//        addComponentListener(new ComponentAdapter() {
+//            @Override
+//            public void componentResized(ComponentEvent e) {
+//                cache.put(WIDTH, String.valueOf(getWidth()));
+//                cache.put(HEIGHT, String.valueOf(getHeight()));
+//                super.componentResized(e);
+//            }
+//            @Override
+//            public void componentMoved(ComponentEvent e) {
+//                cache.put(LOCATE_X, String.valueOf(getLocation().x));
+//                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
+//                super.componentMoved(e);
+//            }
+//        });
+//        addInternalFrameListener(new InternalFrameAdapter() {
+//            @Override
+//            public void internalFrameIconified(InternalFrameEvent e) {
+//                cache.put(IS_ICON, "1"); // Окно свернуто
+//                super.internalFrameIconified(e);
+//            }
+//            @Override
+//            public void internalFrameDeiconified(InternalFrameEvent e) {
+//                cache.put(IS_ICON, "0"); // Окно развернуто
+//                super.internalFrameDeiconified(e);
+//            }
+//            @Override
+//            public void internalFrameClosing(InternalFrameEvent e) {
+//                cache.saveParameters(); // Сохранить параметры перед закрытием
+//                // Освободите ресурсы (например, остановите потоки)
+//                dispose(); // Закрыть окно
+//            }
+//        });
         pack();
+
         defaultParameters();
-        try {
-            this.setParams(cache.getParameters());
-        }
-        catch (PropertyVetoException e){
-            e.printStackTrace();
-        }
+        this.setParams(cache.getParameters());
     }
 
     /**
@@ -94,6 +93,12 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
 
     @Override
     public void saveParameters() {
+        cache.put(WIDTH, String.valueOf(getWidth()));
+        cache.put(HEIGHT, String.valueOf(getHeight()));
+        cache.put(LOCATE_X, String.valueOf(getLocation().x));
+        cache.put(LOCATE_Y, String.valueOf(getLocation().y));
+        cache.put(IS_ICON, isIcon ? "1" : "0");
+
         cache.saveParameters();
     }
 
@@ -101,9 +106,20 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
      * Устанавливает параметры окна.
      * @param params параметры
      */
-    private void setParams(HashMap<String, String> params) throws PropertyVetoException {
-        this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
-        this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
-        this.setIcon(Objects.equals(params.get(IS_ICON), "1"));
+    private void setParams(HashMap<String, String> params) {
+            this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
+            this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
+        try {
+            this.setIcon(Objects.equals(params.get(IS_ICON), "1"));
+        }
+        catch (PropertyVetoException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void loadParameters() {
+        setParams(cache.getParameters());
     }
 }

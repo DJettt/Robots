@@ -4,16 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
 
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Objects;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -30,8 +26,8 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
     private static final String IS_ICON = "isIcon";
     private final static String prefix = "log";
     private final WindowCache cache = new WindowCache(prefix);
-    private LogWindowSource m_logSource;
-    private TextArea m_logContent;
+    private final LogWindowSource m_logSource;
+    private final TextArea m_logContent;
 
     /**
      * Конструктор лог-окна
@@ -47,49 +43,47 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         m_logContent = new TextArea("");
         m_logContent.setSize(200, 500);
 
+        setVisible(false);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                cache.put(WIDTH, String.valueOf(getWidth()));
-                cache.put(HEIGHT, String.valueOf(getHeight()));
-                super.componentResized(e);
-            }
-            @Override
-            public void componentMoved(ComponentEvent e) {
-                cache.put(LOCATE_X, String.valueOf(getLocation().x));
-                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
-                super.componentMoved(e);
-            }
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                cache.saveParameters();
-                super.componentMoved(e);
-            }
-        });
-        addInternalFrameListener(new InternalFrameAdapter() {
-            @Override
-            public void internalFrameIconified(InternalFrameEvent e) {
-                cache.put(IS_ICON, String.valueOf(isIcon() ? 1 : 0));
-                super.internalFrameIconified(e);
-            }
-            @Override
-            public void internalFrameDeiconified(InternalFrameEvent e) {
-                cache.put(IS_ICON, String.valueOf(isIcon() ? 1 : 0));
-                super.internalFrameIconified(e);
-            }
-        });
+
+//        addComponentListener(new ComponentAdapter() {
+//            @Override
+//            public void componentResized(ComponentEvent e) {
+//                cache.put(WIDTH, String.valueOf(getWidth()));
+//                cache.put(HEIGHT, String.valueOf(getHeight()));
+//                super.componentResized(e);
+//            }
+//            @Override
+//            public void componentMoved(ComponentEvent e) {
+//                cache.put(LOCATE_X, String.valueOf(getLocation().x));
+//                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
+//                super.componentMoved(e);
+//            }
+//        });
+//        addInternalFrameListener(new InternalFrameAdapter() {
+//            @Override
+//            public void internalFrameIconified(InternalFrameEvent e) {
+//                cache.put(IS_ICON, "1"); // Окно свернуто
+//                super.internalFrameIconified(e);
+//            }
+//            @Override
+//            public void internalFrameDeiconified(InternalFrameEvent e) {
+//                cache.put(IS_ICON, "0"); // Окно развернуто
+//                super.internalFrameDeiconified(e);
+//            }
+//            @Override
+//            public void internalFrameClosing(InternalFrameEvent e) {
+//                cache.saveParameters(); // Сохранить параметры перед закрытием
+//                // Освободите ресурсы (например, остановите потоки)
+//                dispose(); // Закрыть окно
+//            }
+//        });
         pack();
         updateLogContent();
         defaultParameters();
-        try {
-            this.setParams(cache.getParameters());
-        }
-        catch (PropertyVetoException e){
-            e.printStackTrace();
-        }
+        this.setParams(cache.getParameters());
         Logger.debug("Протокол работает");
     }
 
@@ -104,6 +98,42 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         cache.put(IS_ICON, "0");
     }
 
+    @Override
+    public void saveParameters() {
+        cache.put(WIDTH, String.valueOf(getWidth()));
+        cache.put(HEIGHT, String.valueOf(getHeight()));
+        cache.put(LOCATE_X, String.valueOf(getLocation().x));
+        cache.put(LOCATE_Y, String.valueOf(getLocation().y));
+        cache.put(IS_ICON, isIcon ? "1" : "0");
+        cache.saveParameters();
+    }
+
+    /**
+     * Устанавливает параметры окна.
+     * @param params параметры
+     */
+    private void setParams(HashMap<String, String> params) {
+        try {
+            this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
+            this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
+            this.setIcon(Objects.equals(params.get(IS_ICON), "1"));
+        }
+        catch (PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void loadParameters() {
+        setParams(cache.getParameters());
+    }
+
+    @Override
+    public void onLogChanged()
+    {
+        EventQueue.invokeLater(this::updateLogContent);
+    }
+
     /**
      * Обновление логов.
      */
@@ -116,26 +146,5 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         }
         m_logContent.setText(content.toString());
         m_logContent.invalidate();
-    }
-
-    @Override
-    public void onLogChanged()
-    {
-        EventQueue.invokeLater(this::updateLogContent);
-    }
-
-    @Override
-    public void saveParameters() {
-        cache.saveParameters();
-    }
-
-    /**
-     * Устанавливает параметры окна.
-     * @param params параметры
-     */
-    private void setParams(HashMap<String, String> params) throws PropertyVetoException {
-        this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
-        this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
-        this.setIcon(Objects.equals(params.get(IS_ICON), "1"));
     }
 }

@@ -1,6 +1,6 @@
 package gui;
 
-import java.awt.Frame;
+import gui.windows.MainApplicationFrame;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -16,10 +16,5 @@ public class RobotsProgram
       } catch (Exception e) {
         e.printStackTrace();
       }
-      SwingUtilities.invokeLater(() -> {
-        MainApplicationFrame frame = new MainApplicationFrame();
-        frame.pack();
-        frame.setVisible(true);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-      });
+      SwingUtilities.invokeLater(MainApplicationFrame::new);
     }}

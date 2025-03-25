@@ -1,8 +1,6 @@
 package gui.windows;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Кэш параметров окна.
@@ -11,7 +9,6 @@ public class WindowCache {
     private final PropertiesManager manager = new PropertiesManager();
     private final String prefix;
     private final HashMap<String, String> params = new HashMap<>();
-    private final Set<String> keys = new HashSet<>();
 
     /**
      * Конструктор хеша.
@@ -23,7 +20,6 @@ public class WindowCache {
 
     public void put(String key, String value) {
         params.put(key, value);
-        keys.add(key);
     }
 
     /**
@@ -55,7 +51,7 @@ public class WindowCache {
     public HashMap<String, String> getParameters() {
         manager.loadProperties();
         HashMap<String, String> data = new HashMap<>();
-        for (String key : keys) {
+        for (String key : params.keySet()) {
             data.put(key, manager.getProperty(createKey(key), params.get(key)));
         }
         return data;

@@ -41,39 +41,6 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
         panel.add(m_visualizer, BorderLayout.CENTER);   // Добавление данных в панель
         getContentPane().add(panel);                        // Добавление данных в окно
 
-//         Добавление слушателей
-//        addComponentListener(new ComponentAdapter() {
-//            @Override
-//            public void componentResized(ComponentEvent e) {
-//                cache.put(WIDTH, String.valueOf(getWidth()));
-//                cache.put(HEIGHT, String.valueOf(getHeight()));
-//                super.componentResized(e);
-//            }
-//            @Override
-//            public void componentMoved(ComponentEvent e) {
-//                cache.put(LOCATE_X, String.valueOf(getLocation().x));
-//                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
-//                super.componentMoved(e);
-//            }
-//        });
-//        addInternalFrameListener(new InternalFrameAdapter() {
-//            @Override
-//            public void internalFrameIconified(InternalFrameEvent e) {
-//                cache.put(IS_ICON, "1"); // Окно свернуто
-//                super.internalFrameIconified(e);
-//            }
-//            @Override
-//            public void internalFrameDeiconified(InternalFrameEvent e) {
-//                cache.put(IS_ICON, "0"); // Окно развернуто
-//                super.internalFrameDeiconified(e);
-//            }
-//            @Override
-//            public void internalFrameClosing(InternalFrameEvent e) {
-//                cache.saveParameters(); // Сохранить параметры перед закрытием
-//                // Освободите ресурсы (например, остановите потоки)
-//                dispose(); // Закрыть окно
-//            }
-//        });
         pack();
 
         defaultParameters();
@@ -113,7 +80,6 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
             this.setIcon(Objects.equals(params.get(IS_ICON), "1"));
         }
         catch (PropertyVetoException e) {
-            System.out.println(e);
             e.printStackTrace();
         }
     }

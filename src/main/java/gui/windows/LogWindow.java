@@ -48,38 +48,6 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         panel.add(m_logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
 
-//        addComponentListener(new ComponentAdapter() {
-//            @Override
-//            public void componentResized(ComponentEvent e) {
-//                cache.put(WIDTH, String.valueOf(getWidth()));
-//                cache.put(HEIGHT, String.valueOf(getHeight()));
-//                super.componentResized(e);
-//            }
-//            @Override
-//            public void componentMoved(ComponentEvent e) {
-//                cache.put(LOCATE_X, String.valueOf(getLocation().x));
-//                cache.put(LOCATE_Y, String.valueOf(getLocation().y));
-//                super.componentMoved(e);
-//            }
-//        });
-//        addInternalFrameListener(new InternalFrameAdapter() {
-//            @Override
-//            public void internalFrameIconified(InternalFrameEvent e) {
-//                cache.put(IS_ICON, "1"); // Окно свернуто
-//                super.internalFrameIconified(e);
-//            }
-//            @Override
-//            public void internalFrameDeiconified(InternalFrameEvent e) {
-//                cache.put(IS_ICON, "0"); // Окно развернуто
-//                super.internalFrameDeiconified(e);
-//            }
-//            @Override
-//            public void internalFrameClosing(InternalFrameEvent e) {
-//                cache.saveParameters(); // Сохранить параметры перед закрытием
-//                // Освободите ресурсы (например, остановите потоки)
-//                dispose(); // Закрыть окно
-//            }
-//        });
         pack();
         updateLogContent();
         defaultParameters();

@@ -11,7 +11,7 @@ import java.util.Properties;
  */
 public class PropertiesManager {
     private final Properties properties = new Properties();
-    private final String filePath = "C://ProgramData/RobotsIDEA/cfg.properties";
+    private final String filePath = System.getProperty("user.home") + File.separator + "cfg.properties";
 
     /**
      * Конструктор.

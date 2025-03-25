@@ -40,6 +40,7 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         addWindow(new LogWindow());
         addWindow(new GameWindow());
 
+
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {

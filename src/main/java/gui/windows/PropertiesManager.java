@@ -1,5 +1,6 @@
 package gui.windows;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +42,20 @@ public class PropertiesManager {
      * Выгружает объект properties из файла.
      */
     public void loadProperties() {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            try {
+                if (file.createNewFile()) {
+                    System.out.println("Файл свойств создан: " + filePath);
+                } else {
+                    System.err.println("Не удалось создать файл свойств: " + filePath);
+                    return;
+                }
+            } catch (IOException e) {
+                System.err.println("Ошибка при создании файла свойств: " + e.getMessage());
+                return;
+            }
+        }
         try (FileInputStream input = new FileInputStream(filePath)) {
             properties.load(input);
         } catch (IOException e) {

@@ -11,7 +11,8 @@ import java.util.Properties;
  */
 public class PropertiesManager {
     private final Properties properties = new Properties();
-    private final String filePath = System.getProperty("user.home") + File.separator + "cfg.properties";
+    private final String filePath = System.getProperty("user.home") + File.separator
+            + "pribylov" + File.separator  +"cfg.properties";
 
     /**
      * Конструктор.
@@ -44,17 +45,12 @@ public class PropertiesManager {
     public void loadProperties() {
         File file = new File(filePath);
         if (!file.exists()) {
-            try {
-                if (file.createNewFile()) {
-                    System.out.println("Файл свойств создан: " + filePath);
-                } else {
-                    System.err.println("Не удалось создать файл свойств: " + filePath);
-                    return;
-                }
-            } catch (IOException e) {
-                System.err.println("Ошибка при создании файла свойств: " + e.getMessage());
-                return;
-            }
+           file.getParentFile().mkdirs();
+           try {
+               file.createNewFile();
+           } catch (IOException e) {
+               System.err.println("Ошибка при создании файла: " + e.getMessage());
+           }
         }
         try (FileInputStream input = new FileInputStream(filePath)) {
             properties.load(input);

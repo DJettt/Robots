@@ -1,4 +1,4 @@
-package gui;
+package gui.windows;
 
 import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
@@ -20,13 +20,6 @@ public class JMenuItemBuilder {
      * Пустой конструктор.
      */
     public JMenuItemBuilder() {}
-    /**
-     * Конструктор, который инициализирует заголовок
-     * @param item кнопка
-      */
-    JMenuItemBuilder(@NotNull JMenuItem item) {
-        this.title = item.getText();
-    }
 
     /**
      * Устанавливает заголовок кнопки.

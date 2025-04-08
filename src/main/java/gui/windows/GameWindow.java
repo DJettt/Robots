@@ -1,6 +1,6 @@
 package gui.windows;
 
-import gui.GameVisualizer;
+import gui.game.GameVisualizer;
 import java.awt.BorderLayout;
 
 import java.beans.PropertyVetoException;

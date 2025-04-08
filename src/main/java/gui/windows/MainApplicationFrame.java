@@ -1,6 +1,5 @@
 package gui.windows;
 
-import gui.JMenuItemBuilder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;

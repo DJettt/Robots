@@ -1,5 +1,6 @@
 package gui.windows;
 
+import gui.WindowCache;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;

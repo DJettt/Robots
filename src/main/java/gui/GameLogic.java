@@ -1,4 +1,6 @@
-package gui.game;
+package gui;
+
+import gui.game.VisualGameData;
 
 /**
  * Отвечает за игровую логику.
@@ -60,7 +62,7 @@ public class GameLogic {
     /**
      * Вычисляет новое положение робота.
      */
-    protected void onModelUpdateEvent() {
+    public void onModelUpdateEvent() {
         double distance = distance(target.getX(), target.getY(),
                 robot.getX(), robot.getY());
         if (distance < 0.5) {
@@ -141,5 +143,9 @@ public class GameLogic {
                                     robot.getDirection(),
                                     target.getX(),
                                     target.getY());
+    }
+
+    public GameRobot getRobot() {
+        return this.robot;
     }
 }

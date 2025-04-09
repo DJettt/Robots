@@ -1,5 +1,6 @@
 package gui.game;
 
+import gui.GameLogic;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -19,14 +20,15 @@ import javax.swing.JPanel;
 public class GameVisualizer extends JPanel
 {
     private final Timer m_timer = initTimer();
-    private final GameLogic gameLogic = new GameLogic();
+    private final GameLogic gameLogic;
     private static Timer initTimer() 
     {
         Timer timer = new Timer("events generator", true);
         return timer;
     }
     
-    public GameVisualizer() {
+    public GameVisualizer(GameLogic logic) {
+        gameLogic = logic;
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {

@@ -1,4 +1,4 @@
-package gui.game;
+package gui;
 
 
 public class GameTarget {

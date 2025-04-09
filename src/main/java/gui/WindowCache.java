@@ -1,5 +1,6 @@
-package gui.windows;
+package gui;
 
+import gui.windows.PropertiesManager;
 import java.util.HashMap;
 
 /**
@@ -14,7 +15,7 @@ public class WindowCache {
      * Конструктор хеша.
      * @param prefix префикс окна
      */
-    WindowCache(String prefix) {
+    public WindowCache(String prefix) {
         this.prefix = prefix;
     }
 

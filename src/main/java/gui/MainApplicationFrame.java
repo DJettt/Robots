@@ -1,5 +1,8 @@
-package gui.windows;
+package gui;
 
+import gui.windows.JMenuItemBuilder;
+import gui.windows.LogWindow;
+import gui.windows.SavableWindows;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -36,9 +39,10 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
 
         setContentPane(desktopPane);
 
-        addWindow(new LogWindow());
-        addWindow(new GameWindow());
-
+        addInternalFrame(new LogWindow());
+        GameLogic logic = new GameLogic();
+        addInternalFrame(new GameWindow(logic));
+        addDialog(new CoordinateWindow(this, logic.getRobot()));
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -162,9 +166,17 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * Добавляет окно в приложение.
      * @param frame Информация о содержимом окна.
      */
-    protected void addWindow(JInternalFrame frame) {
+    protected void addInternalFrame(JInternalFrame frame) {
         desktopPane.add(frame);
         frame.setVisible(true);
+    }
+
+    /**
+     * Добавляет диалоговое окно.
+     * @param dialog Диалоговое окно.
+     */
+    protected void addDialog(JDialog dialog) {
+        dialog.setVisible(true);
     }
 
     /**

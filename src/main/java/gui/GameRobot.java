@@ -1,4 +1,6 @@
-package gui.game;
+package gui;
+
+import java.beans.PropertyChangeSupport;
 
 /**
  * Отвечает за робота в игре.
@@ -7,6 +9,7 @@ public class GameRobot {
     private volatile double m_robotPositionX = 100;
     private volatile double m_robotPositionY = 100;
     private volatile double m_robotDirection = 0;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /**
      * Конструктор.
@@ -47,5 +50,9 @@ public class GameRobot {
      */
     public double getDirection() {
         return m_robotDirection;
+    }
+
+    public void addPropertyChangeListener(CoordinateWindow listener) {
+        pcs.addPropertyChangeListener(listener);
     }
 }

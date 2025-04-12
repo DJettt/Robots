@@ -40,9 +40,9 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         setContentPane(desktopPane);
 
         addInternalFrame(new LogWindow());
-        GameLogic logic = new GameLogic();
-        addInternalFrame(new GameWindow(logic));
-        addDialog(new CoordinateWindow(this, logic.getRobot()));
+        GameRobot robot = new GameRobot();
+        addInternalFrame(new GameWindow(robot));
+        addDialog(new CoordinateWindow(this, robot));
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

@@ -1,6 +1,6 @@
-package gui;
+package gui.game;
 
-import gui.game.VisualGameData;
+import gui.GameRobot;
 
 /**
  * Отвечает за игровую логику.
@@ -8,13 +8,14 @@ import gui.game.VisualGameData;
 public class GameLogic {
     private static final double maxVelocity = 0.1;
     private static final double maxAngularVelocity = 0.001;
-    private final GameRobot robot = new GameRobot();
+    private final GameRobot robot;
     private final GameTarget target = new GameTarget();
 
     /**
      * Конструктор игровой логики.
      */
-    GameLogic() {
+    public GameLogic(GameRobot robot) {
+        this.robot = robot;
     }
 
     /**

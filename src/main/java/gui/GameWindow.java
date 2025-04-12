@@ -28,14 +28,14 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     /**
      * Конструктор визуализатора игры.
      */
-    public GameWindow(GameLogic logic) {
+    public GameWindow(GameRobot robot) {
         super("Игровое поле",   // title - Название игрового поля
                 true,               // resizable - Можно изменять размер окна
                 true,               // closable - Можно закрыть
                 true,               //  maximizable - Можно сделать на весь экран
                 true);              // iconifiable - Может быть свернуто
 
-        m_visualizer = new GameVisualizer(logic);            //визуализатор игры
+        m_visualizer = new GameVisualizer(robot);            //визуализатор игры
 
         setVisible(false);
         JPanel panel = new JPanel(new BorderLayout());      // Тип окна

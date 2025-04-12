@@ -1,6 +1,6 @@
 package gui.game;
 
-import gui.GameLogic;
+import gui.GameRobot;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -27,8 +27,8 @@ public class GameVisualizer extends JPanel
         return timer;
     }
     
-    public GameVisualizer(GameLogic logic) {
-        gameLogic = logic;
+    public GameVisualizer(GameRobot robot) {
+        gameLogic = new GameLogic(robot);
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {

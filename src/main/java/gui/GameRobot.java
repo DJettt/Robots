@@ -1,6 +1,8 @@
 package gui;
 
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Optional;
 
 /**
  * Отвечает за робота в игре.
@@ -22,6 +24,7 @@ public class GameRobot {
     public void setCoordinates(double x, double y) {
         m_robotPositionX = x;
         m_robotPositionY = y;
+        pcs.firePropertyChange("changeCoordinate", Optional.empty(), Optional.empty());
     }
 
     /**
@@ -42,6 +45,7 @@ public class GameRobot {
      * Устанавливает направление робота.
      */
     public void setDirection(double direction) {
+        pcs.firePropertyChange("direction", m_robotDirection, direction);
         m_robotDirection = direction;
     }
 
@@ -52,7 +56,7 @@ public class GameRobot {
         return m_robotDirection;
     }
 
-    public void addPropertyChangeListener(CoordinateWindow listener) {
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }
 }

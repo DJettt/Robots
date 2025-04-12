@@ -98,8 +98,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
     }
 
     @Override
-    public void onLogChanged()
-    {
+    public void onLogChanged() {
         EventQueue.invokeLater(this::updateLogContent);
     }
 

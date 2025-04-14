@@ -1,17 +1,23 @@
-package gui;
+package gui.windows;
 
-import gui.windows.SavableWindows;
+import gui.GameRobot;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 
 public class CoordinateWindow extends JDialog implements PropertyChangeListener, SavableWindows {
-    private final String prefix = "coordinates";
+    private final static String prefix = "coordinates";
+
     private static final String WIDTH = "width";
+    private final static int DEF_WIDTH = 300;
     private static final String HEIGHT = "height";
+    private final static int DEF_HEIGHT = 100;
     private static final String LOCATE_X = "locate.x";
+    private final static int DEF_LOCATE_X = 100;
     private static final String LOCATE_Y = "locate.y";
-    private final WindowCache cache = new WindowCache(prefix);
+    private final static int DEF_LOCATE_Y = 100;
     private final JLabel coordinatesLabel;
     private final GameRobot robot;
 
@@ -31,7 +37,7 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
 
         updateCoordinatesLabel();
 
-        setSize(300, 100);
+        setDefaultParameters();
         setLocationRelativeTo(parent);
     }
 
@@ -45,18 +51,45 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
         });
     }
 
+    /**
+     * Устанавливает в кэш дефолтные параметры окна.
+     */
+    private void setDefaultParameters(){
+        this.setSize(DEF_WIDTH, DEF_HEIGHT);
+        this.setLocation(DEF_LOCATE_X, DEF_LOCATE_Y);
+    }
+
+    /**
+     * Устанавливает параметры окна.
+     * @param params параметры
+     */
+    private void setParams(Map<String, String> params) {
+        this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
+        this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         updateCoordinatesLabel();
     }
 
     @Override
-    public void saveParameters() {
-
+    public Map<String, String> getParameters() {
+        Map<String, String> currentParams = new HashMap<>();
+        currentParams.put(WIDTH, String.valueOf(getWidth()));
+        currentParams.put(HEIGHT, String.valueOf(getHeight()));
+        currentParams.put(LOCATE_X, String.valueOf(getLocation().x));
+        currentParams.put(LOCATE_Y, String.valueOf(getLocation().y));
+        return currentParams;
     }
 
     @Override
-    public void loadParameters() {
+    public void loadParameters(Map<String, String> params) {
+        setParams(params);
+    }
 
+    @Override
+    public String getPrefix() {
+        return prefix;
     }
 }

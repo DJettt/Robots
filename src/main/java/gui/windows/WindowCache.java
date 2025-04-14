@@ -1,26 +1,18 @@
-package gui;
+package gui.windows;
 
-import gui.windows.PropertiesManager;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Кэш параметров окна.
  */
 public class WindowCache {
     private final PropertiesManager manager = new PropertiesManager();
-    private final String prefix;
-    private final HashMap<String, String> params = new HashMap<>();
 
     /**
      * Конструктор хеша.
-     * @param prefix префикс окна
      */
-    public WindowCache(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public void put(String key, String value) {
-        params.put(key, value);
+    public WindowCache() {
     }
 
     /**
@@ -28,19 +20,19 @@ public class WindowCache {
      * @param key ключ
      * @return ключ для поиска в общем файле
      */
-    private String createKey(String key) {
+    private String createKey(String prefix, String key) {
         return prefix + '.' + key;
     }
 
     /**
      * Сохраняет параметры в файл.
      */
-    public void saveParameters() {
+    public void saveParameters(Map<String, String> params, String prefix) {
         manager.loadProperties();
         for (HashMap.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            manager.setProperty(createKey(key), value);
+            manager.setProperty(createKey(prefix, key), value);
         }
         manager.saveProperties();
     }
@@ -49,11 +41,11 @@ public class WindowCache {
      * Получает параметры из файла.
      * @return HashMap со всеми параметрами.
      */
-    public HashMap<String, String> getParameters() {
+    public HashMap<String, String> loadParameters(String prefix, Map<String, String> defaultParams) {
         manager.loadProperties();
         HashMap<String, String> data = new HashMap<>();
-        for (String key : params.keySet()) {
-            data.put(key, manager.getProperty(createKey(key), params.get(key)));
+        for (String key : defaultParams.keySet()) {
+            data.put(key, manager.getProperty(createKey(prefix, key), defaultParams.get(key)));
         }
         return data;
     }

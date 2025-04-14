@@ -1,15 +1,20 @@
 package gui;
 
+import gui.windows.CoordinateWindow;
+import gui.windows.GameWindow;
 import gui.windows.JMenuItemBuilder;
 import gui.windows.LogWindow;
 import gui.windows.SavableWindows;
+import gui.windows.WindowCache;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import javax.swing.*;
 
@@ -29,20 +34,20 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
 
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final static String prefix = "main";
-    private final WindowCache cache = new WindowCache(prefix);
+    private final WindowCache cache = new WindowCache();
+    private final ArrayList<SavableWindows> savableWindows = new ArrayList<>();
 
     /**
      * Конструктор.
      */
     public MainApplicationFrame() {
-        defaultParameters();
+        setDefaultParameters();
+        GameRobot robot = new GameRobot();
 
         setContentPane(desktopPane);
-
-        addInternalFrame(new LogWindow());
-        GameRobot robot = new GameRobot();
-        addInternalFrame(new GameWindow(robot));
-        addDialog(new CoordinateWindow(this, robot));
+        addSavableWindow(new LogWindow());
+        addSavableWindow(new GameWindow(robot));
+        addSavableWindow(new CoordinateWindow(this, robot));
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -53,7 +58,8 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
             }
         });
         pack();
-        this.loadParameters();
+        setDefaultParameters();
+        setParams(cache.loadParameters(this.getPrefix(), this.getParameters()));
         setVisible(true);
     }
 
@@ -148,14 +154,12 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            for (JInternalFrame frame : desktopPane.getAllFrames()) {
-                if (frame instanceof SavableWindows) {
-                    ((SavableWindows) frame).saveParameters();
-                }
+            for (SavableWindows frame : savableWindows) {
+                cache.saveParameters(frame.getParameters(), frame.getPrefix());
             }
             Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
                     new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-            this.saveParameters();
+            cache.saveParameters(getParameters(), getPrefix());
             desktopPane.setVisible(false);
             dispose();
             System.exit(0);
@@ -166,17 +170,15 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * Добавляет окно в приложение.
      * @param frame Информация о содержимом окна.
      */
-    protected void addInternalFrame(JInternalFrame frame) {
-        desktopPane.add(frame);
-        frame.setVisible(true);
-    }
-
-    /**
-     * Добавляет диалоговое окно.
-     * @param dialog Диалоговое окно.
-     */
-    protected void addDialog(JDialog dialog) {
-        dialog.setVisible(true);
+    protected void addSavableWindow(SavableWindows frame) {
+        if (frame instanceof JInternalFrame) {
+            desktopPane.add((JInternalFrame) frame);
+            ((JInternalFrame) frame).setVisible(true);
+        } else if (frame instanceof JDialog) {
+            ((JDialog) frame).setVisible(true);
+        }
+        frame.loadParameters(cache.loadParameters(frame.getPrefix(), frame.getParameters()));
+        savableWindows.add(frame);
     }
 
     /**
@@ -199,27 +201,22 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
     /**
      * Устанавливает первоначальные значения параметров окна.
      */
-    private void defaultParameters() {
+    private void setDefaultParameters() {
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int windowWidth = screenSize.width - inset * 2;
         int windowHeight = screenSize.height - inset * 2;
         setBounds(inset, inset, windowWidth, windowHeight);
         setExtendedState(Frame.NORMAL);
-
-        cache.put(LOCATE_X, String.valueOf(inset));
-        cache.put(LOCATE_Y, String.valueOf(inset));
-        cache.put(WIDTH, String.valueOf(windowWidth));
-        cache.put(HEIGHT, String.valueOf(windowHeight));
-        cache.put(IS_ICON, "0");
-        cache.put(IS_WINDOWED, "0");
+        this.setLocation(inset, inset);
+        this.setSize(windowWidth, windowHeight);
     }
 
     /**
      * Устанавливает параметры, полученные из кэша.
      * @param params Параметры окна.
      */
-    private void setParams(HashMap<String, String> params) {
+    private void setParams(Map<String, String> params) {
         this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
         this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
         int state = Frame.NORMAL;
@@ -235,20 +232,25 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
     }
 
     @Override
-    public void saveParameters() {
-        cache.put(WIDTH, String.valueOf(getWidth()));
-        cache.put(HEIGHT, String.valueOf(getHeight()));
-        cache.put(LOCATE_X, String.valueOf(getLocation().x));
-        cache.put(LOCATE_Y, String.valueOf(getLocation().y));
+    public Map<String, String> getParameters() {
+        Map<String, String> currentParams = new HashMap<>();
+        currentParams.put(WIDTH, String.valueOf(getWidth()));
+        currentParams.put(HEIGHT, String.valueOf(getHeight()));
+        currentParams.put(LOCATE_X, String.valueOf(getLocation().x));
+        currentParams.put(LOCATE_Y, String.valueOf(getLocation().y));
         int state = this.getExtendedState();
-        cache.put(IS_ICON, (state & Frame.ICONIFIED) != 0 ? "1" : "0");
-        cache.put(IS_WINDOWED, (state & Frame.MAXIMIZED_BOTH) != 0 ? "0" : "1");
-
-        cache.saveParameters();
+        currentParams.put(IS_ICON, (state & Frame.ICONIFIED) != 0 ? "1" : "0");
+        currentParams.put(IS_WINDOWED, (state & Frame.MAXIMIZED_BOTH) != 0 ? "0" : "1");
+        return currentParams;
     }
 
     @Override
-    public void loadParameters() {
-        setParams(cache.getParameters());
+    public void loadParameters(Map<String, String> params) {
+        setParams(params);
+    }
+
+    @Override
+    public String getPrefix() {
+        return prefix;
     }
 }

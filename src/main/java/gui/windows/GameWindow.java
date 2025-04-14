@@ -1,11 +1,12 @@
-package gui;
+package gui.windows;
 
+import gui.GameRobot;
 import gui.game.GameVisualizer;
-import gui.windows.SavableWindows;
 import java.awt.BorderLayout;
 
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -14,16 +15,18 @@ import javax.swing.JPanel;
  * Визуализирует внутреннее поле с игрой.
  */
 public class GameWindow extends JInternalFrame implements SavableWindows {
-    private static final String WIDTH = "width";
-    private static final String HEIGHT = "height";
-    private static final String LOCATE_X = "locate.x";
-    private static final String LOCATE_Y = "locate.y";
-    private static final String IS_ICON = "isIcon";
-
     private final static String prefix = "game";
 
+    private static final String WIDTH = "width";
+    private final static int DEF_WIDTH = 400;
+    private static final String HEIGHT = "height";
+    private final static int DEF_HEIGHT = 400;
+    private static final String LOCATE_X = "locate.x";
+    private final static int DEF_LOCATE_X = 0;
+    private static final String LOCATE_Y = "locate.y";
+    private final static int DEF_LOCATE_Y = 0;
+    private static final String IS_ICON = "isIcon";
     private final GameVisualizer m_visualizer;
-    private final WindowCache cache = new WindowCache(prefix);
 
     /**
      * Конструктор визуализатора игры.
@@ -43,38 +46,33 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
         getContentPane().add(panel);                        // Добавление данных в окно
 
         pack();
-
-        defaultParameters();
-        this.setParams(cache.getParameters());
+        setDefaultParameters();
     }
 
     /**
      * Устанавливает в кэш дефолтные параметры окна.
      */
-    private void defaultParameters() {
-        cache.put(WIDTH, "400");
-        cache.put(HEIGHT, "400");
-        cache.put(LOCATE_X, "0");
-        cache.put(LOCATE_Y, "0");
-        cache.put(IS_ICON, "0");
+    private void setDefaultParameters() {
+        this.setSize(DEF_WIDTH, DEF_HEIGHT);
+        this.setLocation(DEF_LOCATE_X, DEF_LOCATE_Y);
     }
 
     @Override
-    public void saveParameters() {
-        cache.put(WIDTH, String.valueOf(getWidth()));
-        cache.put(HEIGHT, String.valueOf(getHeight()));
-        cache.put(LOCATE_X, String.valueOf(getLocation().x));
-        cache.put(LOCATE_Y, String.valueOf(getLocation().y));
-        cache.put(IS_ICON, isIcon ? "1" : "0");
-
-        cache.saveParameters();
+    public Map<String, String> getParameters() {
+        Map<String, String> currentParams = new HashMap<>();
+        currentParams.put(WIDTH, String.valueOf(getWidth()));
+        currentParams.put(HEIGHT, String.valueOf(getHeight()));
+        currentParams.put(LOCATE_X, String.valueOf(getLocation().x));
+        currentParams.put(LOCATE_Y, String.valueOf(getLocation().y));
+        currentParams.put(IS_ICON, isIcon ? "1" : "0");
+        return currentParams;
     }
 
     /**
      * Устанавливает параметры окна.
      * @param params параметры
      */
-    private void setParams(HashMap<String, String> params) {
+    private void setParams(Map<String, String> params) {
             this.setSize(Integer.parseInt(params.get(WIDTH)), Integer.parseInt(params.get(HEIGHT)));
             this.setLocation(Integer.parseInt(params.get(LOCATE_X)), Integer.parseInt(params.get(LOCATE_Y)));
         try {
@@ -86,7 +84,12 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     }
 
     @Override
-    public void loadParameters() {
-        setParams(cache.getParameters());
+    public void loadParameters(Map<String, String> params) {
+        setParams(params);
+    }
+
+    @Override
+    public String getPrefix() {
+        return prefix;
     }
 }

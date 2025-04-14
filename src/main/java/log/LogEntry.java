@@ -1,23 +1,41 @@
 package log;
 
-public class LogEntry
-{
+/**
+ * Лог, содержащий информацию и тип.
+ */
+public class LogEntry {
+    /**
+     * Вариант лога.
+     */
     private LogLevel m_logLevel;
+    /**
+     * Информация о приложении.
+     */
     private String m_strMessage;
-    
-    public LogEntry(LogLevel logLevel, String strMessage)
-    {
+
+    /**
+     * Конструктор лога.
+     * @param logLevel Вариация лога.
+     * @param strMessage Информация о работе приложения.
+     */
+    public LogEntry(LogLevel logLevel, String strMessage) {
         m_strMessage = strMessage;
         m_logLevel = logLevel;
     }
-    
-    public String getMessage()
-    {
+
+    /**
+     * Геттер поля информации.
+     * @return String - информация о работе приложения.
+     */
+    public String getMessage() {
         return m_strMessage;
     }
-    
-    public LogLevel getLevel()
-    {
+
+    /**
+     * Геттер поля вариации лога.
+     * @return LogLevel - Вариация лога.
+     */
+    public LogLevel getLevel() {
         return m_logLevel;
     }
 }

@@ -19,7 +19,7 @@ import log.Logger;
 /**
  * Визуализирует окно с логами.
  */
-public class LogWindow extends JInternalFrame implements LogChangeListener, SavableWindows {
+public class LogWindow extends JInternalFrame implements LogChangeListener, SavableWindows, Cleanable {
     private final static String prefix = "log";
 
     private static final String WIDTH = "width";
@@ -94,6 +94,11 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         }
         m_logContent.setText(content.toString());
         m_logContent.invalidate();
+    }
+
+    @Override
+    public void cleanup() {
+        m_logSource.unregisterListener(this);
     }
 
     @Override

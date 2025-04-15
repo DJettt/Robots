@@ -7,20 +7,14 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он 
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено 
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений 
- * ограниченного размера) 
+ * Содержит в себе все логи.
  */
 public class LogWindowSource
 {
     /**
      * Размер очереди с логами.
      */
-    private int m_iQueueLength;
+    private final int m_iQueueLength;
     /**
      * Список логов.
      */

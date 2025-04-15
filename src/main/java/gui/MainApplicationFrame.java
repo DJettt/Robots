@@ -56,6 +56,7 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         addSavableWindow(coordinate);
 
         addCleanableWindow(coordinate);
+        addCleanableWindow(log);
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

@@ -1,5 +1,6 @@
 package gui;
 
+import gui.windows.Cleanable;
 import gui.windows.CoordinateWindow;
 import gui.windows.GameWindow;
 import gui.windows.JMenuItemBuilder;
@@ -36,6 +37,7 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
     private final static String prefix = "main";
     private final WindowCache cache = new WindowCache();
     private final ArrayList<SavableWindows> savableWindows = new ArrayList<>();
+    private final ArrayList<Cleanable> cleanableWindows = new ArrayList<>();
 
     /**
      * Конструктор.
@@ -45,9 +47,15 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         GameRobot robot = new GameRobot();
 
         setContentPane(desktopPane);
-        addSavableWindow(new LogWindow());
-        addSavableWindow(new GameWindow(robot));
-        addSavableWindow(new CoordinateWindow(this, robot));
+        LogWindow log = new LogWindow();
+        GameWindow game = new GameWindow(robot);
+        CoordinateWindow coordinate = new CoordinateWindow(this, robot);
+
+        addSavableWindow(log);
+        addSavableWindow(game);
+        addSavableWindow(coordinate);
+
+        addCleanableWindow(coordinate);
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -154,6 +162,9 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
+            for (Cleanable window : cleanableWindows) {
+                window.cleanup();
+            }
             for (SavableWindows frame : savableWindows) {
                 cache.saveParameters(frame.getParameters(), frame.getPrefix());
             }
@@ -179,6 +190,13 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         }
         frame.loadParameters(cache.loadParameters(frame.getPrefix(), frame.getParameters()));
         savableWindows.add(frame);
+    }
+
+    /**
+     * Добавляет окна для которых перед удалением нужно специально очищать некоторые данные.
+     */
+    protected void addCleanableWindow(Cleanable window) {
+        cleanableWindows.add(window);
     }
 
     /**

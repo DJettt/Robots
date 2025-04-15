@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 
-public class CoordinateWindow extends JDialog implements PropertyChangeListener, SavableWindows {
+public class CoordinateWindow extends JDialog implements PropertyChangeListener, SavableWindows, Cleanable {
     private final static String prefix = "coordinates";
 
     private static final String WIDTH = "width";
@@ -71,6 +71,11 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         updateCoordinatesLabel();
+    }
+
+    @Override
+    public void cleanup() {
+        robot.removePropertyChangeListener(this);
     }
 
     @Override

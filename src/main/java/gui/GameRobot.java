@@ -56,7 +56,19 @@ public class GameRobot {
         return m_robotDirection;
     }
 
+    /**
+     * Добавляет слушателя изменения значений полей класса.
+     * @param listener Новый слушатель.
+     */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
+    }
+
+    /**
+     * Убирает слушателя изменения значений полей класса.
+     * @param listener Слушатель, которого нужно убрать.
+     */
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
     }
 }

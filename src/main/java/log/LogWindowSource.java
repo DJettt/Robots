@@ -3,6 +3,7 @@ package log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -22,11 +23,10 @@ public class LogWindowSource
     /**
      * Список слушателей логов приложения.
      */
-    private final ArrayList<LogChangeListener> m_listeners;
+    private final CopyOnWriteArrayList<LogChangeListener> m_listeners;
     /**
-     * Массив активных слушателей логов.
+     * Блокировка потоков чтения/записи.
      */
-    private volatile LogChangeListener[] m_activeListeners;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
@@ -36,7 +36,7 @@ public class LogWindowSource
     public LogWindowSource(int iQueueLength) {
         m_iQueueLength = iQueueLength;
         m_messages = Collections.emptyList();
-        m_listeners = new ArrayList<>();
+        m_listeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -44,10 +44,7 @@ public class LogWindowSource
      * @param listener LogChangeListener - Слушатель, которого нужно добавить.
      */
     public void registerListener(LogChangeListener listener) {
-        synchronized(m_listeners) {
-            m_listeners.add(listener);
-            m_activeListeners = null;
-        }
+        m_listeners.add(listener);
     }
 
     /**
@@ -55,10 +52,7 @@ public class LogWindowSource
      * @param listener LogChangeListener - слушатель, которого нужно убрать.
      */
     public void unregisterListener(LogChangeListener listener) {
-        synchronized(m_listeners) {
-            m_listeners.remove(listener);
-            m_activeListeners = null;
-        }
+        m_listeners.remove(listener);
     }
 
     /**
@@ -77,17 +71,7 @@ public class LogWindowSource
             }
             m_messages = Collections.unmodifiableList(newLogList);
 
-            //TODO разобраться!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!жжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-            LogChangeListener[] activeListeners = m_activeListeners;
-            if (activeListeners == null) {
-                synchronized (m_listeners) {
-                    if (m_activeListeners == null) {
-                        activeListeners = m_listeners.toArray(new LogChangeListener[0]);
-                        m_activeListeners = activeListeners;
-                    }
-                }
-            }
-            for (LogChangeListener listener : activeListeners) {
+            for (LogChangeListener listener : m_listeners) {
                 listener.onLogChanged();
             }
         }
@@ -101,7 +85,12 @@ public class LogWindowSource
      * @return int - размер.
      */
     public int size() {
-        return m_messages.size();
+        lock.readLock().lock();
+        try {
+            return m_messages.size();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -114,8 +103,14 @@ public class LogWindowSource
         if (startFrom < 0 || startFrom >= m_messages.size()) {
             return Collections.emptyList();
         }
-        int indexTo = Math.min(startFrom + count, m_messages.size());
-        return m_messages.subList(startFrom, indexTo);
+        lock.readLock().lock();
+        try {
+            int indexTo = Math.min(startFrom + count, m_messages.size());
+            return m_messages.subList(startFrom, indexTo);
+        }
+        finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -123,6 +118,11 @@ public class LogWindowSource
      * @return Iterable - Список всех логов.
      */
     public Iterable<LogEntry> all() {
-        return m_messages;
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(m_messages);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 }

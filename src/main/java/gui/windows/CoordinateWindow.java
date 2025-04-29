@@ -1,7 +1,8 @@
 package gui.windows;
 
-import gui.GameModelListener;
 import gui.game.GameModel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
@@ -9,7 +10,7 @@ import javax.swing.*;
 /**
  * Отображает текущие координаты робота.
  */
-public class CoordinateWindow extends JDialog implements GameModelListener, SavableWindows, Cleanable {
+public class CoordinateWindow extends JDialog implements PropertyChangeListener, SavableWindows, Cleanable {
     private final static String prefix = "coordinates";
 
     private static final String WIDTH = "width";
@@ -37,18 +38,16 @@ public class CoordinateWindow extends JDialog implements GameModelListener, Sava
         coordinatesLabel = new JLabel("\tX: ?\n Y: ?\n Direction: ?");
         getContentPane().add(coordinatesLabel);
 
-        updateCoordinatesLabel();
-
         setDefaultParameters();
         setLocationRelativeTo(parent);
     }
 
     /**
-     * Обновляет информацию при изменении параметров класса GameRobot.
+     * Обновляет информацию при изменении параметров робота.
      */
-    private void updateCoordinatesLabel() {
+    private void updateCoordinatesLabel(double robotX, double robotY, double robotDirection) {
         SwingUtilities.invokeLater(() -> coordinatesLabel.setText(String.format("X: %.2f,\n Y: %.2f,\n Direction: %.2f",
-                    model.getRobotX(), model.getRobotY(), model.getRobotDirection())));
+                    robotX, robotY, robotDirection)));
     }
 
     /**
@@ -69,16 +68,6 @@ public class CoordinateWindow extends JDialog implements GameModelListener, Sava
     }
 
     @Override
-    public void onEvent() {
-        updateCoordinatesLabel();
-    }
-
-    @Override
-    public void cleanup() {
-        model.removeListener(this);
-    }
-
-    @Override
     public Map<String, String> getParameters() {
         Map<String, String> currentParams = new HashMap<>();
         currentParams.put(WIDTH, String.valueOf(getWidth()));
@@ -96,5 +85,18 @@ public class CoordinateWindow extends JDialog implements GameModelListener, Sava
     @Override
     public String getPrefix() {
         return prefix;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("robotChanged")) {
+            GameModel model = (GameModel) evt.getNewValue();
+            updateCoordinatesLabel(model.getRobotX(), model.getRobotY(), model.getRobotDirection());
+        }
+    }
+
+    @Override
+    public void cleanup() {
+        model.removeListener(this);
     }
 }

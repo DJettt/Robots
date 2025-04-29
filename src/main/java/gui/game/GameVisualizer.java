@@ -1,23 +1,23 @@
 package gui.game;
 
 import gui.ControllerRobot;
-import gui.GameModelListener;
-import gui.windows.Cleanable;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.JPanel;
 
 /**
  * Отвечает за визуализацию игры.
  */
-public class GameVisualizer extends JPanel implements GameModelListener, Cleanable
+public class GameVisualizer extends JPanel implements PropertyChangeListener
 {
     private final ControllerRobot controller;
-    private final gui.game.GameModel model;
+    private final GameModel model;
 
     public GameVisualizer(gui.game.GameModel model) {
         this.model = model;
@@ -40,11 +40,12 @@ public class GameVisualizer extends JPanel implements GameModelListener, Cleanab
     public void paint(Graphics g) {
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
+
         drawRobot(g2d, round(model.getRobotX()),
                 round(model.getRobotY()),
                 model.getRobotDirection());
-        drawTarget(g2d, round(model.getTargetX()),
-                round(model.getTargetY()));
+
+        drawTarget(g2d, round(model.getTargetX()), round(model.getTargetY()));
     }
 
     /**
@@ -116,12 +117,7 @@ public class GameVisualizer extends JPanel implements GameModelListener, Cleanab
     }
 
     @Override
-    public void cleanup() {
-        model.removeListener(this);
-    }
-
-    @Override
-    public void onEvent() {
-        this.repaint();
+    public void propertyChange(PropertyChangeEvent evt) {
+        repaint();
     }
 }

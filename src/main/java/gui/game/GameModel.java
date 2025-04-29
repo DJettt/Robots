@@ -1,18 +1,14 @@
 package gui.game;
 
-import gui.GameModelListener;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Optional;
 
 /**
  * Отвечает за игровую логику.
  */
 public class GameModel {
-    private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final List<WeakReference<GameModelListener>> listeners = new ArrayList<>();
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final double maxVelocity = 0.1;
     private static final double maxAngularVelocity = 0.001;
     private double robotX = 100;
@@ -86,7 +82,7 @@ public class GameModel {
             angularVelocity = -maxAngularVelocity;
         }
         moveRobot(maxVelocity, angularVelocity, 10);
-        notifyAllListeners();
+        robotChanged();
     }
 
     /**
@@ -143,6 +139,7 @@ public class GameModel {
     public void setTarget(int x, int y) {
         targetX = x;
         targetY = y;
+        targetChanged();
     }
 
     /**
@@ -189,27 +186,33 @@ public class GameModel {
      * Добавляет слушателя изменения значений полей класса.
      * @param listener Новый слушатель.
      */
-    public void addListener(GameModelListener listener) {
-        this.listeners.add(new WeakReference<>(listener));
+    public void addListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
     }
 
     /**
      * Убирает слушателя изменения значений полей класса.
      * @param listener Слушатель, которого нужно убрать.
      */
-    public void removeListener(GameModelListener listener) {
-        this.listeners.remove(new WeakReference<>(listener));
+    public void removeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
     }
 
     /**
-     * Оповещает всех слушателей об изменении значений полей.
+     * Уведомляет слушателей о том, что поменялись координаты цели.
      */
-    public void notifyAllListeners() {
-        for (WeakReference<GameModelListener> weakRefToListener : listeners) {
-            GameModelListener listener = weakRefToListener.get();
-            if (listener != null) {
-                executor.submit(listener::onEvent);
-            }
-        }
+    private void targetChanged() {
+        pcs.firePropertyChange("targetChanged",
+                Optional.empty(),
+                this);
+    }
+
+    /**
+     * Уведомляет слушателей о том, что поменялись координаты робота.
+     */
+    private void robotChanged() {
+        pcs.firePropertyChange("robotChanged",
+                Optional.empty(),
+                this);
     }
 }

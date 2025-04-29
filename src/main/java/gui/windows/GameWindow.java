@@ -1,9 +1,9 @@
 package gui.windows;
 
-import gui.GameRobot;
+
+import gui.game.GameModel;
 import gui.game.GameVisualizer;
 import java.awt.BorderLayout;
-
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,14 +31,14 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     /**
      * Конструктор визуализатора игры.
      */
-    public GameWindow(GameRobot robot) {
+    public GameWindow(GameModel model) {
         super("Игровое поле",   // title - Название игрового поля
                 true,               // resizable - Можно изменять размер окна
                 true,               // closable - Можно закрыть
                 true,               //  maximizable - Можно сделать на весь экран
                 true);              // iconifiable - Может быть свернуто
 
-        m_visualizer = new GameVisualizer(robot);            //визуализатор игры
+        m_visualizer = new GameVisualizer(model);            //визуализатор игры
 
         setVisible(false);
         JPanel panel = new JPanel(new BorderLayout());      // Тип окна

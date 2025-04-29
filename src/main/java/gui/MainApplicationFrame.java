@@ -1,5 +1,6 @@
 package gui;
 
+import gui.game.GameModel;
 import gui.windows.Cleanable;
 import gui.windows.CoordinateWindow;
 import gui.windows.GameWindow;
@@ -44,12 +45,12 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      */
     public MainApplicationFrame() {
         setDefaultParameters();
-        GameRobot robot = new GameRobot();
+        GameModel model = new GameModel();
 
         setContentPane(desktopPane);
         LogWindow log = new LogWindow();
-        GameWindow game = new GameWindow(robot);
-        CoordinateWindow coordinate = new CoordinateWindow(this, robot);
+        GameWindow game = new GameWindow(model);
+        CoordinateWindow coordinate = new CoordinateWindow(this, model);
 
         addSavableWindow(log);
         addSavableWindow(game);

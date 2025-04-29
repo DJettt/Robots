@@ -1,22 +1,30 @@
 package gui.game;
 
-import gui.GameRobot;
+import gui.GameModelListener;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Отвечает за игровую логику.
  */
-public class GameLogic {
+public class GameModel {
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final List<WeakReference<GameModelListener>> listeners = new ArrayList<>();
     private static final double maxVelocity = 0.1;
     private static final double maxAngularVelocity = 0.001;
-    private final GameRobot robot;
-    private final GameTarget target = new GameTarget();
+    private double robotX = 100;
+    private double robotY = 100;
+    private double robotDirection = 0;
+    private int targetX = 150;
+    private int targetY = 100;
 
     /**
      * Конструктор игровой логики.
      */
-    public GameLogic(GameRobot robot) {
-        this.robot = robot;
-    }
+    public GameModel() {}
 
     /**
      * Отвечает за движения робота
@@ -27,23 +35,23 @@ public class GameLogic {
     private void moveRobot(double velocity, double angularVelocity, double duration) {
         velocity = applyLimits(velocity, 0, maxVelocity);
         angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
-        double newX = robot.getX() + velocity / angularVelocity *
-                (Math.sin(robot.getDirection()  + angularVelocity * duration) -
-                        Math.sin(robot.getDirection()));
+        double newX = robotX + velocity / angularVelocity *
+                (Math.sin(robotDirection  + angularVelocity * duration) -
+                        Math.sin(robotDirection));
         if (!Double.isFinite(newX)) {
-            newX = robot.getX() + velocity * duration * Math.cos(robot.getDirection());
+            newX = robotX + velocity * duration * Math.cos(robotDirection);
         }
 
-        double newY = robot.getY() - velocity / angularVelocity *
-                (Math.cos(robot.getDirection() + angularVelocity * duration) -
-                        Math.cos(robot.getDirection()));
+        double newY = robotY - velocity / angularVelocity *
+                (Math.cos(robotDirection + angularVelocity * duration) -
+                        Math.cos(robotDirection));
 
         if (!Double.isFinite(newY)) {
-            newY = robot.getY() + velocity * duration * Math.sin(robot.getDirection());
+            newY = robotY + velocity * duration * Math.sin(robotDirection);
         }
-        robot.setCoordinates(newX, newY);
-        double newDirection = asNormalizedRadians(robot.getDirection() + angularVelocity * duration);
-        robot.setDirection(newDirection);
+        robotX = newX;
+        robotY = newY;
+        robotDirection = asNormalizedRadians(robotDirection + angularVelocity * duration);
     }
 
     /**
@@ -64,20 +72,21 @@ public class GameLogic {
      * Вычисляет новое положение робота.
      */
     public void onModelUpdateEvent() {
-        double distance = distance(target.getX(), target.getY(),
-                robot.getX(), robot.getY());
+        double distance = distance(targetX, targetY,
+                robotX, robotY);
         if (distance < 0.5) {
             return;
         }
-        double angleToTarget = angleTo(robot.getX(), robot.getY(), target.getX(), target.getY());
+        double angleToTarget = angleTo(robotX, robotY, targetX, targetY);
         double angularVelocity = 0;
-        if (angleToTarget > robot.getDirection()) {
+        if (angleToTarget > robotDirection) {
             angularVelocity = maxAngularVelocity;
         }
-        if (angleToTarget < robot.getDirection()) {
+        if (angleToTarget < robotDirection) {
             angularVelocity = -maxAngularVelocity;
         }
         moveRobot(maxVelocity, angularVelocity, 10);
+        notifyAllListeners();
     }
 
     /**
@@ -108,6 +117,7 @@ public class GameLogic {
         return Math.min(value, max);
     }
 
+
     /**
      * Уменьшает угол в радианах до 0 <= angle <= 2*PI
      * @param angle угол
@@ -131,22 +141,75 @@ public class GameLogic {
      * @param y Координата цели Y.
      */
     public void setTarget(int x, int y) {
-        target.setCoordinates(x, y);
+        targetX = x;
+        targetY = y;
     }
 
     /**
-     * Возвращает информацию, которую надо отрисовать.
-     * @return Объект с информацией.
+     * Возвращает координату робота Х.
+     * @return double координата робота Х.
      */
-    public VisualGameData getVisualData() {
-        return new VisualGameData(robot.getX(),
-                                    robot.getY(),
-                                    robot.getDirection(),
-                                    target.getX(),
-                                    target.getY());
+    public double getRobotX() {
+        return robotX;
     }
 
-    public GameRobot getRobot() {
-        return this.robot;
+    /**
+     * Возвращает координату робота У.
+     * @return double координата робота У.
+     */
+    public double getRobotY() {
+        return robotY;
+    }
+
+    /**
+     * Возвращает направление робота.
+     * @return double направление робота.
+     */
+    public double getRobotDirection() {
+        return robotDirection;
+    }
+
+    /**
+     * Возвращает координату цели Х.
+     * @return double координата цели Х.
+     */
+    public double getTargetX() {
+        return targetX;
+    }
+
+    /**
+     * Возвращает координату цели Y.
+     * @return double координата цели Y.
+     */
+    public double getTargetY() {
+        return targetY;
+    }
+
+    /**
+     * Добавляет слушателя изменения значений полей класса.
+     * @param listener Новый слушатель.
+     */
+    public void addListener(GameModelListener listener) {
+        this.listeners.add(new WeakReference<>(listener));
+    }
+
+    /**
+     * Убирает слушателя изменения значений полей класса.
+     * @param listener Слушатель, которого нужно убрать.
+     */
+    public void removeListener(GameModelListener listener) {
+        this.listeners.remove(new WeakReference<>(listener));
+    }
+
+    /**
+     * Оповещает всех слушателей об изменении значений полей.
+     */
+    public void notifyAllListeners() {
+        for (WeakReference<GameModelListener> weakRefToListener : listeners) {
+            GameModelListener listener = weakRefToListener.get();
+            if (listener != null) {
+                executor.submit(listener::onEvent);
+            }
+        }
     }
 }

@@ -1,46 +1,28 @@
 package gui.game;
 
-import gui.GameRobot;
+import gui.ControllerRobot;
+import gui.GameModelListener;
+import gui.windows.Cleanable;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.swing.JPanel;
 
 /**
  * Отвечает за визуализацию игры.
  */
-public class GameVisualizer extends JPanel
+public class GameVisualizer extends JPanel implements GameModelListener, Cleanable
 {
-    private final Timer m_timer = initTimer();
-    private final GameLogic gameLogic;
-    private static Timer initTimer() 
-    {
-        Timer timer = new Timer("events generator", true);
-        return timer;
-    }
-    
-    public GameVisualizer(GameRobot robot) {
-        gameLogic = new GameLogic(robot);
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                onRedrawEvent();
-            }
-        }, 0, 50);
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                gameLogic.onModelUpdateEvent();
-            }
-        }, 0, 10);
+    private final ControllerRobot controller;
+    private final gui.game.GameModel model;
+
+    public GameVisualizer(gui.game.GameModel model) {
+        this.model = model;
+        this.controller = new ControllerRobot(model);
+        model.addListener(this);
         addMouseListener(new MouseAdapter() {
             /**
              * Обработка клика пользователя.
@@ -48,38 +30,21 @@ public class GameVisualizer extends JPanel
              */
             @Override
             public void mouseClicked(MouseEvent e) {
-                setTargetPosition(e.getPoint());
-                repaint();
+                controller.setChangesModel(e.getPoint().x, e.getPoint().y);
             }
         });
         setDoubleBuffered(true);
     }
 
-    /**
-     * Устанавливает позицию цели по полученному клику.
-     * @param p клик от пользователя.
-     */
-    protected void setTargetPosition(Point p) {
-        gameLogic.setTarget(p.x, p.y);
-    }
-
-    /**
-     * Перерисовывает компонент интерфейса.
-     */
-    protected void onRedrawEvent() {
-        EventQueue.invokeLater(this::repaint);
-    }
-    
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
-        VisualGameData visualGameData = gameLogic.getVisualData();
-        drawRobot(g2d, visualGameData.getRobotX(),
-                visualGameData.getRobotY(),
-                visualGameData.getRobotDirection());
-        drawTarget(g2d, visualGameData.getTargetX(),
-                visualGameData.getTargetY());
+        drawRobot(g2d, round(model.getRobotX()),
+                round(model.getRobotY()),
+                model.getRobotDirection());
+        drawTarget(g2d, round(model.getTargetX()),
+                round(model.getTargetY()));
     }
 
     /**
@@ -133,11 +98,30 @@ public class GameVisualizer extends JPanel
      * @param y Координата цели Y.
      */
     private void drawTarget(Graphics2D g, int x, int y) {
-        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0); 
+        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
         g.setColor(Color.GREEN);
         fillOval(g, x, y, 5, 5);
         g.setColor(Color.BLACK);
         drawOval(g, x, y, 5, 5);
+    }
+
+    /**
+     * Округляет значение.
+     * @param value Значение, которое нужно изменить.
+     * @return Округленное значение.
+     */
+    private static int round(double value) {
+        return (int)(value + 0.5);
+    }
+
+    @Override
+    public void cleanup() {
+        model.removeListener(this);
+    }
+
+    @Override
+    public void onEvent() {
+        this.repaint();
     }
 }

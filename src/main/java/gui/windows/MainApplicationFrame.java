@@ -1,13 +1,8 @@
-package gui;
+package gui.windows;
 
 import gui.game.GameModel;
-import gui.windows.Cleanable;
-import gui.windows.CoordinateWindow;
-import gui.windows.GameWindow;
-import gui.windows.JMenuItemBuilder;
-import gui.windows.LogWindow;
-import gui.windows.SavableWindows;
-import gui.windows.WindowCache;
+import gui.save_window_params.Savable;
+import gui.save_window_params.WindowCache;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -16,16 +11,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import javax.swing.*;
 
+import localization.LocalizationContext;
+import localization.LocalizationListener;
 import log.Logger;
 
 /**
  * Создает содержимое окна приложения, а именно окно игры и окно логов.
  */
-public class MainApplicationFrame extends JFrame implements SavableWindows
+public class MainApplicationFrame extends JFrame implements Savable, LocalizationListener
 {
     private static final String WIDTH = "width";
     private static final String HEIGHT = "height";
@@ -33,31 +31,37 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
     private static final String LOCATE_Y = "locate.y";
     private static final String IS_ICON = "isIcon";
     private static final String IS_WINDOWED = "isWindowed";
+    private static final String LOCALE = "locale";
 
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final static String prefix = "main";
     private final WindowCache cache = new WindowCache();
-    private final ArrayList<SavableWindows> savableWindows = new ArrayList<>();
-    private final ArrayList<Cleanable> cleanableWindows = new ArrayList<>();
+    private final ArrayList<Savable> savableWindows = new ArrayList<>();
+
+    private final Locale englishLocale = Locale.forLanguageTag("en");
+    private final Locale russianLocale = Locale.forLanguageTag("ru");
+    private final LocalizationContext localizationContext = new LocalizationContext();
+
 
     /**
      * Конструктор.
      */
     public MainApplicationFrame() {
-        setDefaultParameters();
         GameModel model = new GameModel();
-
+        loadLocale();
         setContentPane(desktopPane);
-        LogWindow log = new LogWindow();
-        GameWindow game = new GameWindow(model);
-        CoordinateWindow coordinate = new CoordinateWindow(this, model);
+        LogWindow log = new LogWindow(localizationContext);
+        GameWindow game = new GameWindow(model, localizationContext);
+        CoordinateWindow coordinate = new CoordinateWindow(this, model, localizationContext);
 
         addSavableWindow(log);
         addSavableWindow(game);
         addSavableWindow(coordinate);
 
-        addCleanableWindow(coordinate);
-        addCleanableWindow(log);
+        localizationContext.addListener(this);
+        localizationContext.addListener(log);
+        localizationContext.addListener(game);
+        localizationContext.addListener(coordinate);
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -82,6 +86,7 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         menuBar.add(createMenuBar());
         menuBar.add(createBackgroundMenu());
         menuBar.add(createTestMenu());
+        menuBar.add(createLocalizationMenu());
         return menuBar;
     }
 
@@ -90,13 +95,14 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * @return меню заднего фона
      */
     protected JMenu createBackgroundMenu() {
-        JMenu backgroundMenu = new JMenu("Режим отображения");
+        JMenu backgroundMenu = new JMenu(
+                localizationContext.getString("main.menu.background.title"));
         backgroundMenu.setMnemonic(KeyEvent.VK_V);
         backgroundMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
+                localizationContext.getString("main.menu.background.title.description"));
 
         backgroundMenu.add(new JMenuItemBuilder()
-                .title("Системная схема")
+                .title(localizationContext.getString("main.menu.background.button_system"))
                 .mnemonic(KeyEvent.VK_S)
                 .listener((event) -> {
                     setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -104,7 +110,7 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
                 .build());
 
         backgroundMenu.add(new JMenuItemBuilder()
-                .title("Универсальная схема")
+                .title(localizationContext.getString("main.menu.background.button_universal"))
                 .mnemonic(KeyEvent.VK_S)
                 .listener((event) -> {
                     setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -118,16 +124,48 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * @return Меню "Тесты" с кнопками
      */
     protected JMenu createTestMenu() {
-        JMenu testMenu = new JMenu("Тесты");
+        JMenu testMenu = new JMenu(
+                localizationContext.getString("main.menu.tests"));
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
-                "Тестовые команды");
+                localizationContext.getString("main.menu.test_command"));
 
         testMenu.add(new JMenuItemBuilder()
-                .title("Сообщение в лог")
+                .title(localizationContext.getString("main.log.test.debug"))
                 .mnemonic(KeyEvent.VK_S)
-                .listener((event) -> Logger.debug("Новая строка"))
+                .listener((event) -> Logger.debug(
+                        localizationContext.getString("main.log.test.debug.command")))
                 .build());
+
+        testMenu.add(new JMenuItemBuilder()
+                .title(localizationContext.getString("main.log.test.error"))
+                .mnemonic(KeyEvent.VK_E)
+                .listener((event) -> Logger.debug(
+                        localizationContext.getString("main.log.test.error.command")))
+                .build());
+        return testMenu;
+    }
+
+    /**
+     * Создает меню Локализации
+     * @return Меню "Локализация" с кнопками
+     */
+    protected JMenu createLocalizationMenu() {
+        JMenu testMenu = new JMenu(localizationContext.getString("main.window.language.title"));
+        testMenu.setMnemonic(KeyEvent.VK_L);
+        testMenu.getAccessibleContext().setAccessibleDescription(
+                localizationContext.getString("main.window.language.description"));
+
+        testMenu.add(new JMenuItemBuilder()
+                .title("Русский")
+                .listener((event) -> localizationContext.setLocale(russianLocale))
+                .build());
+
+        testMenu.add(new JMenuItemBuilder()
+                .title("English")
+                .listener((event) -> localizationContext.setLocale(englishLocale))
+                .build());
+
         return testMenu;
     }
 
@@ -136,11 +174,11 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * @return Кнопка с разделами.
      */
     protected JMenu createMenuBar() {
-        JMenu menu = new JMenu("Меню");
+        JMenu menu = new JMenu(localizationContext.getString("main.menu.menu.title"));
         menu.setMnemonic(KeyEvent.VK_D);
 
         menu.add(new JMenuItemBuilder()
-                .title("Выход")
+                .title(localizationContext.getString("main.menu.menu.exit"))
                 .mnemonic(KeyEvent.VK_Q)
                 .accelKey(KeyEvent.VK_Q)
                 .accelMask(ActionEvent.ALT_MASK)
@@ -154,24 +192,31 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
      * Создает окно подтверждения при попытке выхода из программы.
      */
     protected void closeProgramConfirm() {
-        UIManager.put("OptionPane.yesButtonText", "Да");
-        UIManager.put("OptionPane.noButtonText", "Нет");
+        UIManager.put(
+                "OptionPane.yesButtonText",
+                localizationContext.getString("main.exit.yes_button")
+        );
+        UIManager.put(
+                "OptionPane.noButtonText",
+                localizationContext.getString("main.exit.no_button")
+        );
         int confirm = JOptionPane.showConfirmDialog(
                 MainApplicationFrame.this,
-                "Вы точно хотите выйти?",
-                "Подтверждение выхода",
+                localizationContext.getString("main.exit.question"),
+                localizationContext.getString("main.exit.window_title"),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            for (Cleanable window : cleanableWindows) {
-                window.cleanup();
-            }
-            for (SavableWindows frame : savableWindows) {
+            for (Savable frame : savableWindows) {
                 cache.saveParameters(frame.getParameters(), frame.getPrefix());
             }
             Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
                     new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+            cache.saveParameters(
+                    localizationContext.getParameters(),
+                    localizationContext.getPrefix()
+            );
             cache.saveParameters(getParameters(), getPrefix());
             desktopPane.setVisible(false);
             dispose();
@@ -179,11 +224,18 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         }
     }
 
+    private void loadLocale() {
+        localizationContext.setParams(
+                cache.loadParameters(localizationContext.getPrefix(),
+                        localizationContext.getParameters())
+        );
+    }
+
     /**
      * Добавляет окно в приложение.
      * @param frame Информация о содержимом окна.
      */
-    protected void addSavableWindow(SavableWindows frame) {
+    protected void addSavableWindow(Savable frame) {
         if (frame instanceof JInternalFrame) {
             desktopPane.add((JInternalFrame) frame);
             ((JInternalFrame) frame).setVisible(true);
@@ -192,13 +244,6 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
         }
         frame.loadParameters(cache.loadParameters(frame.getPrefix(), frame.getParameters()));
         savableWindows.add(frame);
-    }
-
-    /**
-     * Добавляет окна для которых перед удалением нужно специально очищать некоторые данные.
-     */
-    protected void addCleanableWindow(Cleanable window) {
-        cleanableWindows.add(window);
     }
 
     /**
@@ -272,5 +317,10 @@ public class MainApplicationFrame extends JFrame implements SavableWindows
     @Override
     public String getPrefix() {
         return prefix;
+    }
+
+    @Override
+    public void onLanguageChanged() {
+        setJMenuBar(generateMenuBar());
     }
 }

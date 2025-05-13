@@ -1,4 +1,4 @@
-package gui.windows;
+package gui.save_window_params;
 
 import java.util.HashMap;
 import java.util.Map;

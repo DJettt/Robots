@@ -11,15 +11,18 @@ import java.util.Objects;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
+import localization.LocalizationContext;
+import localization.LocalizationListener;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 import log.Logger;
+import gui.save_window_params.Savable;
 
 /**
  * Визуализирует окно с логами.
  */
-public class LogWindow extends JInternalFrame implements LogChangeListener, SavableWindows, Cleanable {
+public class LogWindow extends JInternalFrame implements LogChangeListener, Savable, LocalizationListener {
     private final static String prefix = "log";
 
     private static final String WIDTH = "width";
@@ -34,11 +37,13 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
     private final LogWindowSource m_logSource;
     private final TextArea m_logContent;
 
+    private final LocalizationContext localizationContext;
+
     /**
      * Конструктор лог-окна
      */
-    public LogWindow() {
-        super("Протокол работы", // title - Название игрового поля
+    public LogWindow(LocalizationContext localizationContext) {
+        super(localizationContext.getString("log.title"), // title - Название игрового поля
                 true,               // resizable - Можно изменять размер окна
                 true,               // closable - Можно закрыть
                 true,               //  maximizable - Можно сделать на весь экран
@@ -52,11 +57,12 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
-
         pack();
+
+        this.localizationContext = localizationContext;
         updateLogContent();
         setDefaultParameters();
-        Logger.debug("Протокол работает");
+        Logger.debug(localizationContext.getString("log.start_debug"));
     }
 
     /**
@@ -97,11 +103,6 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
     }
 
     @Override
-    public void cleanup() {
-        m_logSource.unregisterListener(this);
-    }
-
-    @Override
     public Map<String, String> getParameters() {
         Map<String, String> currentParams = new HashMap<>();
         currentParams.put(WIDTH, String.valueOf(getWidth()));
@@ -125,5 +126,10 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Sava
     @Override
     public void onLogChanged() {
         EventQueue.invokeLater(this::updateLogContent);
+    }
+
+    @Override
+    public void onLanguageChanged() {
+        setTitle(localizationContext.getString("log.title"));
     }
 }

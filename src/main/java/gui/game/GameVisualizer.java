@@ -1,6 +1,5 @@
 package gui.game;
 
-import gui.ControllerRobot;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;

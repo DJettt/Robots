@@ -6,11 +6,14 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
+import gui.save_window_params.Savable;
+import localization.LocalizationContext;
+import localization.LocalizationListener;
 
 /**
  * Отображает текущие координаты робота.
  */
-public class CoordinateWindow extends JDialog implements PropertyChangeListener, SavableWindows, Cleanable {
+public class CoordinateWindow extends JDialog implements PropertyChangeListener, Savable, LocalizationListener {
     private final static String prefix = "coordinates";
 
     private static final String WIDTH = "width";
@@ -21,21 +24,25 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
     private final static int DEF_LOCATE_X = 100;
     private static final String LOCATE_Y = "locate.y";
     private final static int DEF_LOCATE_Y = 100;
+    private double robotX;
+    private double robotY;
+    private double robotDirection;
     private final JLabel coordinatesLabel;
-    private final GameModel model;
+
+    private final LocalizationContext localizationContext;
 
     /**
      * Конструктор окна.
      * @param parent Отец данного окна.
      * @param model Игровая модель.
      */
-    public CoordinateWindow(JFrame parent, GameModel model) {
-        super(parent, "Координаты Робота", false);
-        this.model = model;
+    public CoordinateWindow(JFrame parent, GameModel model, LocalizationContext localizationContext) {
+        super(parent, localizationContext.getString("coordinate.title"), false);
+        this.localizationContext = localizationContext;
         model.addListener(this);
 
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        coordinatesLabel = new JLabel("\tX: ?\n Y: ?\n Direction: ?");
+        coordinatesLabel = new JLabel();
         getContentPane().add(coordinatesLabel);
 
         setDefaultParameters();
@@ -46,8 +53,20 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
      * Обновляет информацию при изменении параметров робота.
      */
     private void updateCoordinatesLabel(double robotX, double robotY, double robotDirection) {
-        SwingUtilities.invokeLater(() -> coordinatesLabel.setText(String.format("X: %.2f,\n Y: %.2f,\n Direction: %.2f",
-                    robotX, robotY, robotDirection)));
+        this.robotX = robotX;
+        this.robotY = robotY;
+        this.robotDirection = robotDirection;
+
+        SwingUtilities.invokeLater(() -> {
+            String directionLabel = localizationContext.getString("game.direction");
+
+            String formatted = String.format(
+                    "<html>X: %.2f<br>Y: %.2f<br>%s: %.2f</html>",
+                    robotX, robotY, directionLabel, robotDirection
+            );
+
+            coordinatesLabel.setText(formatted);
+        });
     }
 
     /**
@@ -96,7 +115,8 @@ public class CoordinateWindow extends JDialog implements PropertyChangeListener,
     }
 
     @Override
-    public void cleanup() {
-        model.removeListener(this);
+    public void onLanguageChanged() {
+        setTitle(localizationContext.getString("coordinate.title"));
+        updateCoordinatesLabel(robotX, robotY, robotDirection);
     }
 }

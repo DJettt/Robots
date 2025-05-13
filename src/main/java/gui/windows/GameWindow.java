@@ -10,11 +10,14 @@ import java.util.Map;
 import java.util.Objects;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
+import gui.save_window_params.Savable;
+import localization.LocalizationContext;
+import localization.LocalizationListener;
 
 /**
  * Визуализирует внутреннее поле с игрой.
  */
-public class GameWindow extends JInternalFrame implements SavableWindows {
+public class GameWindow extends JInternalFrame implements Savable, LocalizationListener {
     private final static String prefix = "game";
 
     private static final String WIDTH = "width";
@@ -28,11 +31,13 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     private static final String IS_ICON = "isIcon";
     private final GameVisualizer m_visualizer;
 
+    private final LocalizationContext localizationContext;
+
     /**
      * Конструктор визуализатора игры.
      */
-    public GameWindow(GameModel model) {
-        super("Игровое поле",   // title - Название игрового поля
+    public GameWindow(GameModel model, LocalizationContext localizationContext) {
+        super(localizationContext.getString("game.title"),   // title - Название игрового поля
                 true,               // resizable - Можно изменять размер окна
                 true,               // closable - Можно закрыть
                 true,               //  maximizable - Можно сделать на весь экран
@@ -44,8 +49,9 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
         JPanel panel = new JPanel(new BorderLayout());      // Тип окна
         panel.add(m_visualizer, BorderLayout.CENTER);   // Добавление данных в панель
         getContentPane().add(panel);                        // Добавление данных в окно
-
         pack();
+
+        this.localizationContext = localizationContext;
         setDefaultParameters();
     }
 
@@ -91,5 +97,10 @@ public class GameWindow extends JInternalFrame implements SavableWindows {
     @Override
     public String getPrefix() {
         return prefix;
+    }
+
+    @Override
+    public void onLanguageChanged() {
+        setTitle(localizationContext.getString("game.title"));
     }
 }

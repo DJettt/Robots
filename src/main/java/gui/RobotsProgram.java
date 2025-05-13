@@ -1,5 +1,6 @@
 package gui;
 
+import gui.windows.MainApplicationFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -15,4 +16,5 @@ public class RobotsProgram
         e.printStackTrace();
       }
       SwingUtilities.invokeLater(MainApplicationFrame::new);
-    }}
+    }
+}

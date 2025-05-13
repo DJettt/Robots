@@ -1,4 +1,4 @@
-package gui.windows;
+package gui.save_window_params;
 
 import java.io.File;
 import java.io.FileInputStream;

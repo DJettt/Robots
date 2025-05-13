@@ -1,5 +1,6 @@
 package log;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,7 @@ public class LogWindowSource
     /**
      * Список слушателей логов приложения.
      */
-    private final CopyOnWriteArrayList<LogChangeListener> m_listeners;
+    private final CopyOnWriteArrayList<WeakReference<LogChangeListener>> m_listeners;
     /**
      * Блокировка потоков чтения/записи.
      */
@@ -44,7 +45,7 @@ public class LogWindowSource
      * @param listener LogChangeListener - Слушатель, которого нужно добавить.
      */
     public void registerListener(LogChangeListener listener) {
-        m_listeners.add(listener);
+        m_listeners.add(new WeakReference<>(listener));
     }
 
     /**
@@ -52,7 +53,7 @@ public class LogWindowSource
      * @param listener LogChangeListener - слушатель, которого нужно убрать.
      */
     public void unregisterListener(LogChangeListener listener) {
-        m_listeners.remove(listener);
+        m_listeners.remove(new WeakReference<>(listener));
     }
 
     /**
@@ -71,7 +72,9 @@ public class LogWindowSource
             }
             m_messages = Collections.unmodifiableList(newLogList);
 
-            for (LogChangeListener listener : m_listeners) {
+            for (WeakReference<LogChangeListener> weakListener : m_listeners) {
+                LogChangeListener listener = weakListener.get();
+                assert listener != null;
                 listener.onLogChanged();
             }
         }

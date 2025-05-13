@@ -1,6 +1,5 @@
-package gui;
+package gui.game;
 
-import gui.game.GameModel;
 import java.util.Timer;
 import java.util.TimerTask;
 
